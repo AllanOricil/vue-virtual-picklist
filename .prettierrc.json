@@ -1,0 +1,17 @@
+{
+    "extends": [
+        "plugin:vue/essential",
+        "@vue/prettier"
+    ],
+    "rules": {
+        "prettier/prettier": [
+            "error",
+            {
+                "endOfLine": "auto"
+            }
+        ]
+    },
+    "parserOptions": {
+        "parser": "babel-eslint"
+    }
+}

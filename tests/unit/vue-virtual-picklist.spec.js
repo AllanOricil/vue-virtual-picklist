@@ -152,7 +152,7 @@ describe("VueVirtualPicklist.vue", () => {
     expect(validator([])).toBe(false);
   });
 
-  it("should render with a selected option", () => {
+  it("should render with selected option", () => {
     let wrapper = mount(VueVirtualPicklist, {
       propsData: {
         options,
@@ -184,7 +184,7 @@ describe("VueVirtualPicklist.vue", () => {
     expect(selectedOption.text()).toContain("v");
   });
 
-  it("should render without a selected option", () => {
+  it("should render without elected option", () => {
     let wrapper = mount(VueVirtualPicklist, {
       propsData: {
         options,

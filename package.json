@@ -1,6 +1,6 @@
 {
-  "name": "@allanoricil/vue-virtual-picklist",
-  "version": "0.0.5",
+  "name": "vue-virtual-picklist",
+  "version": "0.0.0",
   "description": "This is an optmized picklist for Vue",
   "scripts": {
     "serve": "vue-cli-service serve dev/serve.js",
