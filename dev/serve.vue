@@ -2,23 +2,58 @@
   <div id="app">
     <vue-virtual-picklist
       :options="items"
+      style="height: 40px !important"
       v-model="selectedOption"
       search-key="label"
-      :height="25"
+      enable-search
+      :option-height="27"
       :visible-options="10"
     >
+      <template #option="{ option }">
+        <div class="option">{{ option.label }}</div>
+      </template>
     </vue-virtual-picklist>
+
+    <vue-virtual-picklist
+      style="margin-top: 10px"
+      :options="items"
+      v-model="selectedOption"
+      search-key="label"
+      :option-height="35"
+      :visible-options="10"
+    >
+      <template #option="{ option }">
+        <div class="option">{{ option.label }}</div>
+      </template>
+    </vue-virtual-picklist>
+
+    <vue-virtual-picklist
+      style="margin-top: 10px"
+      :options="items"
+      v-model="selectedOption"
+      search-key="label"
+      :option-height="35"
+      :visible-options="1"
+    >
+      <template #option="{ option }">
+        <div class="option">{{ option.label }}</div>
+      </template>
+    </vue-virtual-picklist>
+
+    <vue-test test-prop="banana"></vue-test>
   </div>
 </template>
 
 <script>
 import Vue from "vue";
 import VueVirtualPicklist from "@/vue-virtual-picklist.vue";
+import VueTest from "@/vue-test.vue";
 
 export default Vue.extend({
   name: "ServeDev",
   components: {
     VueVirtualPicklist,
+    VueTest,
   },
   data: () => {
     return {
@@ -1393,3 +1428,9 @@ export default Vue.extend({
   },
 });
 </script>
+
+<style>
+.option {
+  height: 40px;
+}
+</style>

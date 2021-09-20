@@ -54,6 +54,28 @@ describe("VueVirtualPicklist.vue", () => {
     for (let i = 0; i < picklistOptions.length; i++) {
       expect(picklistOptions.at(i).text()).toBe(options[i].label);
     }
+
+    wrapper = mount(VueVirtualPicklist, {
+      propsData: {
+        options,
+      },
+    });
+
+    picklistOptions = wrapper.findAll(".vue-virtual-picklist__option");
+    expect(picklistOptions.length).toBe(5);
+    for (let i = 0; i < picklistOptions.length; i++) {
+      expect(picklistOptions.at(i).text()).toBe(options[i].label);
+    }
+
+    wrapper = mount(VueVirtualPicklist, {
+      propsData: {
+        options,
+        visibleOptions: 0,
+      },
+    });
+
+    picklistOptions = wrapper.findAll(".vue-virtual-picklist__option");
+    expect(picklistOptions.length).toBe(0);
   });
 
   it("should not render the component without options", () => {
