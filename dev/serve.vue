@@ -39,21 +39,17 @@
         <div class="option">{{ option.label }}</div>
       </template>
     </vue-virtual-picklist>
-
-    <vue-test test-prop="banana"></vue-test>
   </div>
 </template>
 
 <script>
 import Vue from "vue";
 import VueVirtualPicklist from "@/vue-virtual-picklist.vue";
-import VueTest from "@/vue-test.vue";
 
 export default Vue.extend({
   name: "ServeDev",
   components: {
     VueVirtualPicklist,
-    VueTest,
   },
   data: () => {
     return {
@@ -1429,8 +1425,4 @@ export default Vue.extend({
 });
 </script>
 
-<style>
-.option {
-  height: 40px;
-}
-</style>
+<style></style>

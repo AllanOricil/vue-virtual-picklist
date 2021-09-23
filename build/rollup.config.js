@@ -7,7 +7,9 @@ import commonjs from "@rollup/plugin-commonjs";
 import resolve from "@rollup/plugin-node-resolve";
 import replace from "@rollup/plugin-replace";
 import babel from "@rollup/plugin-babel";
-import css from "rollup-plugin-css-only";
+import postcss from "rollup-plugin-postcss";
+import autoprefixer from "autoprefixer";
+
 import { terser } from "rollup-plugin-terser";
 import minimist from "minimist";
 
@@ -39,12 +41,18 @@ const baseConfig = {
           },
         ],
       }),
+      postcss({
+        extract: true,
+        modules: false,
+        plugins: [autoprefixer()],
+      }),
     ],
     replace: {
       "process.env.NODE_ENV": JSON.stringify("production"),
     },
     vue: {
       css: false,
+      preprocessStyles: true,
       template: {
         isProduction: true,
       },
@@ -53,7 +61,6 @@ const baseConfig = {
       resolve({
         extensions: [".js", ".jsx", ".ts", ".tsx", ".vue"],
       }),
-      css({ output: "vue-virtual-picklist.css" }),
       commonjs(),
     ],
     babel: {

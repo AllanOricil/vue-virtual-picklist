@@ -1,10 +1,13 @@
 <template>
   <div
-    ref="picklist-container"
+    ref="vue-virtual-picklist__picklist-container"
     class="vue-virtual-picklist__picklist-container"
     :class="computedPicklistContainerClasses"
   >
-    <div ref="picklist-field" class="vue-virtual-picklist__picklist-field">
+    <div
+      ref="vue-virtual-picklist__picklist-field"
+      class="vue-virtual-picklist__picklist-field"
+    >
       <div
         class="vue-virtual-picklist__picklist-input-container"
         :style="computedPicklistInputContainerStyles"
@@ -26,9 +29,11 @@
             :style="computedSelectedOptionStyles"
             @click="onClickSelectedOption"
           >
-            <slot name="selected-option" :option="selectedOption">{{
-              selectedOptionLabel
-            }}</slot>
+            <slot
+              name="vue-virtual-picklist__selected-option"
+              :option="selectedOption"
+              >{{ selectedOptionLabel }}</slot
+            >
           </div>
         </template>
         <div
@@ -195,7 +200,7 @@ export default {
     },
     computedFieldHeight() {
       return this.isMounted
-        ? this.$refs["picklist-container"]?.offsetHeight
+        ? this.$refs["vue-virtual-picklist__picklist-container"]?.offsetHeight
         : 0;
     },
     computedPicklistContainerClasses() {
@@ -235,7 +240,7 @@ export default {
     },
     isDisplayOptionsActiveClasses() {
       return {
-        "vue-virtual-picklist__active": this.dislayOptions,
+        active: this.dislayOptions,
       };
     },
     renderOptionsVirtualList() {
@@ -290,10 +295,8 @@ export default {
 };
 </script>
 
-<style>
+<style scope>
 .vue-virtual-picklist__picklist-container * {
-  -webkit-box-sizing: border-box;
-  -moz-box-sizing: border-box;
   box-sizing: border-box;
 }
 
@@ -348,7 +351,7 @@ export default {
   outline: none !important;
 }
 
-.vue-virtual-picklist__picklist-input-container.vue-virtual-picklist__active {
+.vue-virtual-picklist__picklist-input-container.active {
   background-color: transparent !important;
 }
 
@@ -359,7 +362,7 @@ export default {
   transition: transform 0.2s ease !important;
 }
 
-.vue-virtual-picklist__picklist-input-container.vue-virtual-picklist__active
+.vue-virtual-picklist__picklist-input-container.active
   .vue-virtual-picklist__picklist-button-icon {
   transform: rotate(180deg) !important;
 }
