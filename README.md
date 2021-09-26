@@ -1,6 +1,10 @@
+<a href="https://www.buymeacoffee.com/allanoricil" target="_blank"><img src="https://cdn.buymeacoffee.com/buttons/default-orange.png" alt="Buy Me A Coffee" style="height: 51px !important;width: 217px !important;" ></a>
+
 # Vue Virtual Picklist
 
-> It is a picklist that virtualizes its options to avoid mounting all of them in the DOM. Options are swaped depending on the position of the scrollbar.
+It is a picklist that virtualizes its options to avoid mounting all of them in the DOM. Options are swaped depending on the position of the scrollbar.
+
+Here you can find the [documentation](https://vue-virtual-picklist.netlify.app/) which has lots of examples.
 
 ## Props
 
