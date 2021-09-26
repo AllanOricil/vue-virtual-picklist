@@ -1,33 +1,11 @@
 {
   "name": "vue-virtual-picklist",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "description": "This is an optimized picklist/combobox for Vue that virtualizes the available options",
   "author": {
     "name": "Allan Oricil",
     "email": "allanoricilcos@outlook.com"
   },
-  "publishConfig": {
-    "registry": "https://registry.npmjs.org"
-  },
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/AllanOricil/vue-virtual-picklist.git"
-  },
-  "bugs": {
-    "url": "https://github.com/AllanOricil/vue-virtual-picklist/issues",
-    "email": "allanoricilcos@outlook.com"
-  },
-  "license": "Apache-2.0",
-  "funding": "https://www.buymeacoffee.com/allanoricil",
-  "keywords": [
-    "vue",
-    "picklist",
-    "virtual",
-    "virtualized",
-    "combobox",
-    "nuxt",
-    "optimized"
-  ],
   "scripts": {
     "serve": "vue-cli-service serve dev/serve.js",
     "build": "cross-env NODE_ENV=production rollup --config build/rollup.config.js",
@@ -36,8 +14,11 @@
     "build:es": "cross-env NODE_ENV=production rollup --config build/rollup.config.js --format es",
     "build:ssr": "cross-env NODE_ENV=production rollup --config build/rollup.config.js --format cjs",
     "build:unpkg": "cross-env NODE_ENV=production rollup --config build/rollup.config.js --format iife",
+    "doc": "vue-docgen src/**/*.vue docs/components",
     "format": "prettier .  --write",
-    "prebuild": "rimraf ./dist"
+    "prebuild": "rimraf ./dist",
+    "styleguide": "vue-cli-service styleguidist",
+    "styleguide:build": "vue-cli-service styleguidist:build"
   },
   "main": "dist/vue-virtual-picklist.ssr.js",
   "module": "dist/vue-virtual-picklist.esm.js",
@@ -63,6 +44,8 @@
     "@vue/cli-plugin-unit-jest": "~4.5.0",
     "@vue/cli-service": "^4.5.13",
     "@vue/test-utils": "^1.2.2",
+    "@vuedoc/md": "^3.2.0",
+    "@vuedoc/parser": "^3.4.0",
     "babel-eslint": "^10.1.0",
     "cross-env": "^7.0.3",
     "eslint": "^7.32.0",
@@ -83,13 +66,40 @@
     "rollup-plugin-vue": "^5.1.9",
     "sinon": "^11.1.2",
     "vue": "^2.6.14",
-    "vue-template-compiler": "^2.6.14"
+    "vue-cli-plugin-styleguidist": "~4.41.2",
+    "vue-docgen-cli": "^4.41.2",
+    "vue-loader": "^14.2.4",
+    "vue-styleguidist": "^4.41.2",
+    "vue-template-compiler": "^2.6.14",
+    "webpack": "^4.46.0"
   },
   "peerDependencies": {
     "vue": "^2.6.14"
   },
+  "bugs": {
+    "url": "https://github.com/AllanOricil/vue-virtual-picklist/issues",
+    "email": "allanoricilcos@outlook.com"
+  },
   "engines": {
     "node": ">=12"
+  },
+  "funding": "https://www.buymeacoffee.com/allanoricil",
+  "keywords": [
+    "vue",
+    "picklist",
+    "virtual",
+    "virtualized",
+    "combobox",
+    "nuxt",
+    "optimized"
+  ],
+  "license": "Apache-2.0",
+  "publishConfig": {
+    "registry": "https://registry.npmjs.org"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/AllanOricil/vue-virtual-picklist.git"
   },
   "sideEffects": false
 }

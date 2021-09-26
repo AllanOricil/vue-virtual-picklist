@@ -9,6 +9,7 @@
   >
     <div
       class="vue-virtual-picklist__picklist-input-container"
+      ref="picklist-input-container"
       tabindex="0"
       :style="computedPicklistInputContainerStyles"
       :class="computedPicklistInputContainerClasses"
@@ -49,7 +50,7 @@
           @slot used to control how the picklist's placeholder is rendered. 
           @binding {string} placeholder it is the value you passed on the `placeholder` property.
         -->
-        <slot name="placeholder" :placehodler="placeholder">{{
+        <slot name="placeholder" :placeholder="placeholder">{{
           placeholder
         }}</slot>
       </div>
@@ -92,7 +93,7 @@
       >
         <template #default="{ item, index }">
           <div
-            class="vue-virtual-picklist__option vue-virtual-picklist__noselect"
+            class="vue-virtual-picklist__noselect"
             :class="computedOptionClasses(index)"
             :style="computedOptionStyles"
             @click="onSelectOption(item, index)"
@@ -101,9 +102,11 @@
               @slot used to control how each option from the list of options is rendered.
               @binding {object} option it is an object containing  `value`, `label`, `index`, and `originalListIndex`
             -->
-            <slot name="option" :option="{ ...item, index }">{{
-              item.label
-            }}</slot>
+            <slot name="option" :option="{ ...item, index }"
+              ><div class="vue-virtual-picklist__option">
+                {{ item.label }}
+              </div></slot
+            >
           </div>
         </template>
       </virtualized-list>
@@ -129,6 +132,7 @@ import vClickOutside from "v-click-outside";
  * @displayName Vue Virtual Picklist
  */
 export default {
+  name: "vue-virtual-picklist",
   directives: {
     clickOutside: vClickOutside.directive,
   },
@@ -225,11 +229,10 @@ export default {
       type: Object,
     },
     /**
-     * It controls the number of visible options.
+     * It controls the number of visible options. It must be bigger than 0.
      */
     visibleOptions: {
       type: Number,
-      default: 5,
       validator: (value) => {
         return value > 0;
       },
@@ -269,11 +272,17 @@ export default {
       };
     },
     computedOptionsContainerStyles() {
+      if (!this.isMounted) return;
+      let elm = this.$refs["picklist-input-container"];
+      let borderWidth = getComputedStyle(elm, null)?.getPropertyValue(
+        "border-top-width"
+      );
+
       return {
-        height: this.availableOptions?.length
+        height: this.visibleOptions
           ? this.visibleOptions * this.computedOptionHeight + "px !important"
-          : "100px",
-        top: this.computedFieldHeight + "px !important",
+          : "100px !important",
+        top: `calc(${this.computedFieldHeight}px + 2*${borderWidth}) !important`,
       };
     },
     computedSelectedOptionStyles() {
@@ -321,11 +330,14 @@ export default {
   },
   beforeMount() {
     if (this.value) {
-      this.selectedOption = this.options?.find(
-        (option, index) =>
-          option[this.searchKey] === this.value?.[this.searchKey] &&
-          index === this.value?.index
-      );
+      this.selectedOption = {
+        ...this.options?.find(
+          (option, index) =>
+            option[this.searchKey] === this.value?.[this.searchKey] &&
+            index === this.value?.index
+        ),
+        originalListIndex: this.value.index,
+      };
     }
 
     this.setAvailableOptions();
@@ -439,7 +451,7 @@ export default {
        * @property { object } option object containing `value`, `label`, `index`, and `originalListIndex`
        * @event select
        */
-      this.$emit("select", option);
+      this.$emit("select", this.selectedOption);
 
       /**
        * dispatched after selecting an option. This is used for v-model.
@@ -447,7 +459,7 @@ export default {
        * @property { object } option object containing `value`, `label`, `index`, and `originalListIndex`
        * @event input
        */
-      this.$emit("input", option);
+      this.$emit("input", this.selectedOption);
     },
     onPressEnterOnActiveOption() {
       this.onSelectOption(this.availableOptions[this.activeOptionIndex]);
@@ -483,7 +495,6 @@ export default {
 
 <style scope>
 .vue-virtual-picklist__picklist-container * {
-  box-sizing: border-box !important;
   font-family: Helvetica, Sans-Serif !important;
   font-size: 12px !important;
 }
@@ -554,14 +565,15 @@ export default {
   background-color: white !important;
   border: thin solid grey !important;
   z-index: 999 !important;
-  cursor: pointer !important;
+  cursor: default !important;
 }
 
 .vue-virtual-picklist__option {
-  padding: 0px 10px !important;
-  white-space: nowrap;
-  text-overflow: ellipsis;
-  overflow: hidden;
+  cursor: pointer;
+  padding: 0 10px !important;
+  white-space: nowrap !important;
+  text-overflow: ellipsis !important;
+  overflow: hidden !important;
 }
 
 .vue-virtual-picklist__option:hover {

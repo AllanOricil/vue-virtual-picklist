@@ -4,8 +4,6 @@
       :options="items"
       style="margin-bottom: 10px"
       v-model="selectedOption"
-      @show-options="onShowOptions"
-      @hide-options="onHideOptions"
     >
     </vue-virtual-picklist>
 
@@ -54,8 +52,10 @@
     >
       <template #option="{ option }">
         <div class="option">{{ option.label }}</div>
-      </template> </vue-virtual-picklist
-    ><vue-virtual-picklist
+      </template>
+    </vue-virtual-picklist>
+
+    <vue-virtual-picklist
       :options="items"
       style="height: 40px !important; margin-bottom: 10px"
       v-model="selectedOption"
