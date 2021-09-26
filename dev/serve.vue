@@ -2,7 +2,62 @@
   <div id="app">
     <vue-virtual-picklist
       :options="items"
-      style="height: 40px !important"
+      style="margin-bottom: 10px"
+      v-model="selectedOption"
+      @show-options="onShowOptions"
+      @hide-options="onHideOptions"
+    >
+    </vue-virtual-picklist>
+
+    <vue-virtual-picklist
+      :options="items"
+      style="height: 40px !important; margin-bottom: 10px"
+      v-model="selectedOption"
+    >
+    </vue-virtual-picklist>
+
+    <vue-virtual-picklist
+      :options="items"
+      style="margin-bottom: 10px"
+      v-model="selectedOption"
+      enable-search
+    >
+      <template #option="{ option }">
+        <div class="option">
+          Label: {{ option.label }} Index: {{ option.index }} Original Index:
+          {{ option.originalListIndex }}
+        </div>
+      </template>
+    </vue-virtual-picklist>
+
+    <vue-virtual-picklist
+      :options="items"
+      style="margin-bottom: 10px"
+      v-model="selectedOption"
+      enable-search
+      :option-height="27"
+      :visible-options="10"
+    >
+      <template #option="{ option }">
+        <div class="option">{{ option.label }}</div>
+      </template>
+    </vue-virtual-picklist>
+
+    <vue-virtual-picklist
+      :options="items"
+      style="height: 40px !important; margin-bottom: 10px"
+      v-model="selectedOption"
+      search-key="label"
+      enable-search
+      :option-height="27"
+      :visible-options="10"
+    >
+      <template #option="{ option }">
+        <div class="option">{{ option.label }}</div>
+      </template> </vue-virtual-picklist
+    ><vue-virtual-picklist
+      :options="items"
+      style="height: 40px !important; margin-bottom: 10px"
       v-model="selectedOption"
       search-key="label"
       enable-search
@@ -15,7 +70,113 @@
     </vue-virtual-picklist>
 
     <vue-virtual-picklist
-      style="margin-top: 10px"
+      :options="items"
+      style="margin-bottom: 10px"
+      v-model="selectedOption"
+      search-key="label"
+      enable-search
+      hide-selected
+      :option-height="27"
+      :visible-options="10"
+    >
+      <template #option="{ option }">
+        <div class="option">{{ option.label }}</div>
+      </template>
+    </vue-virtual-picklist>
+
+    <vue-virtual-picklist
+      :options="items"
+      style="height: 40px !important; margin-bottom: 10px"
+      v-model="selectedOption"
+      search-key="label"
+      enable-search
+      case-sentive
+      :option-height="27"
+      :visible-options="10"
+    >
+      <template #option="{ option }">
+        <div class="option">{{ option.label }}</div>
+      </template>
+    </vue-virtual-picklist>
+
+    <vue-virtual-picklist
+      :options="items"
+      style="margin-bottom: 10px"
+      v-model="selectedOption"
+      search-key="label"
+      enable-search
+      hide-selected
+      :option-height="27"
+      :visible-options="10"
+    >
+      <template slot="dropdown-icon">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 448 512"
+          class="dropdown-icon-1"
+        >
+          <path
+            d="M448 80v352c0 26.5-21.5 48-48 48H48c-26.5 0-48-21.5-48-48V80c0-26.5 21.5-48 48-48h352c26.5 0 48 21.5 48 48zM92.5 220.5l123 123c4.7 4.7 12.3 4.7 17 0l123-123c7.6-7.6 2.2-20.5-8.5-20.5H101c-10.7 0-16.1 12.9-8.5 20.5z"
+          />
+        </svg>
+      </template>
+    </vue-virtual-picklist>
+
+    <vue-virtual-picklist
+      :options="items"
+      style="margin-bottom: 10px"
+      v-model="selectedOption"
+      search-key="label"
+      enable-search
+      hide-selected
+      :option-height="27"
+      :visible-options="10"
+    >
+      <template slot="dropdown-icon">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 512 512"
+          class="dropdown-icon-2"
+        >
+          <path
+            d="M504 256c0 137-111 248-248 248S8 393 8 256 119 8 256 8s248 111 248 248zM273 369.9l135.5-135.5c9.4-9.4 9.4-24.6 0-33.9l-17-17c-9.4-9.4-24.6-9.4-33.9 0L256 285.1 154.4 183.5c-9.4-9.4-24.6-9.4-33.9 0l-17 17c-9.4 9.4-9.4 24.6 0 33.9L239 369.9c9.4 9.4 24.6 9.4 34 0z"
+          />
+        </svg>
+      </template>
+    </vue-virtual-picklist>
+
+    <vue-virtual-picklist
+      :options="items"
+      style="margin-bottom: 10px"
+      v-model="selectedOption"
+      search-key="label"
+      enable-search
+      hide-selected
+      disabled
+      :option-height="27"
+      :visible-options="10"
+    >
+      <template #option="{ option }">
+        <div class="option">{{ option.label }}</div>
+      </template>
+    </vue-virtual-picklist>
+
+    <vue-virtual-picklist
+      :options="items"
+      style="margin-bottom: 10px"
+      search-key="label"
+      enable-search
+      hide-selected
+      :option-height="27"
+      :visible-options="10"
+    >
+      <template #option="{ option }">
+        <div class="option">{{ option.label }}</div>
+      </template>
+    </vue-virtual-picklist>
+
+    <vue-virtual-picklist
+      style="margin-bottom: 10px"
       :options="items"
       v-model="selectedOption"
       search-key="label"
@@ -54,9 +215,9 @@ export default Vue.extend({
   data: () => {
     return {
       selectedOption: {
-        label: "a",
-        value: "a",
-        index: 0,
+        label: "b",
+        value: "b",
+        index: 1,
       },
       items: [
         { label: "a", value: "a" },
@@ -1422,7 +1583,27 @@ export default Vue.extend({
       ],
     };
   },
+  methods: {
+    onShowOptions() {
+      console.log("Do something when Options are displayed");
+    },
+    onHideOptions() {
+      console.log("Do something when options are hidden");
+    },
+  },
 });
 </script>
 
-<style></style>
+<style scope>
+.dropdown-icon-1 {
+  height: 100% !important;
+  max-height: 15px !important;
+  fill: black !important;
+}
+
+.dropdown-icon-2 {
+  height: 100% !important;
+  max-height: 15px !important;
+  fill: rgb(240, 12, 12) !important;
+}
+</style>

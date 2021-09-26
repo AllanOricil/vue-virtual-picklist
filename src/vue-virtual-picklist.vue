@@ -1,49 +1,57 @@
 <template>
   <div
-    ref="vue-virtual-picklist__picklist-container"
+    ref="picklist-container"
     class="vue-virtual-picklist__picklist-container"
     :class="computedPicklistContainerClasses"
+    @keyup.arrow-down="moveActiveOptionDown"
+    @keyup.arrow-up="moveActiveOptionUp"
+    @keyup.enter="onPressEnterOnActiveOption"
   >
     <div
-      ref="vue-virtual-picklist__picklist-field"
-      class="vue-virtual-picklist__picklist-field"
+      class="vue-virtual-picklist__picklist-input-container"
+      tabindex="0"
+      :style="computedPicklistInputContainerStyles"
+      :class="computedPicklistInputContainerClasses"
+      v-click-outside="onClickOutside"
+      @keyup.esc="onPressEscape"
     >
+      <input
+        v-if="renderSearchInput"
+        ref="input"
+        v-model="searchString"
+        :placeholder="searchInputPlaceholder"
+        class="vue-virtual-picklist__picklist-input"
+        @click="onClickPicklistField"
+        @focus="onInputGainFocus"
+        @keyup="onSearchOptions"
+      />
       <div
-        class="vue-virtual-picklist__picklist-input-container"
-        :style="computedPicklistInputContainerStyles"
-        :class="isDisplayOptionsActiveClasses"
-        tabindex="0"
-        @keyup.esc="onPressEscape"
-        v-click-outside="onInputLoseFocus"
+        v-else-if="selectedOption"
+        class="vue-virtual-picklist__selected-option"
+        :style="computedSelectedOptionStyles"
+        @click="onClickPicklistField"
       >
-        <input
-          v-if="renderSearchInput"
-          ref="input"
-          v-model="searchString"
-          class="vue-virtual-picklist__picklist-input"
-          @focus="onInputGainFocus"
-        />
-        <template v-else>
-          <div
-            class="vue-virtual-picklist__selected-option"
-            :style="computedSelectedOptionStyles"
-            @click="onClickSelectedOption"
-          >
-            <slot
-              name="vue-virtual-picklist__selected-option"
-              :option="selectedOption"
-              >{{ selectedOptionLabel }}</slot
-            >
-          </div>
-        </template>
-        <div
-          class="vue-virtual-picklist__picklist-button"
-          :style="computedPicklistButtonStyles"
-          @click="onClickPicklistButton"
-        >
+        <slot name="selected-option" :option="selectedOption">{{
+          selectedOptionLabel
+        }}</slot>
+      </div>
+      <div
+        v-else-if="renderPlaceholder"
+        class="vue-virtual-picklist__placeholder"
+        :style="computedPlaceholderStyles"
+        @click="onClickPicklistField"
+      >
+        <slot name="placeholder">{{ placeholder }}</slot>
+      </div>
+      <div
+        class="vue-virtual-picklist__picklist-button"
+        :style="computedPicklistButtonStyles"
+        @click="onClickDropdownButton"
+      >
+        <slot name="dropdown-icon">
           <svg
             focusable="false"
-            class="vue-virtual-picklist__picklist-button-icon"
+            class="vue-virtual-picklist__dropdown-icon"
             data-key="down"
             aria-hidden="true"
             viewBox="0 0 52 52"
@@ -54,27 +62,31 @@
               ></path>
             </g>
           </svg>
-        </div>
+        </slot>
       </div>
     </div>
     <div
-      v-show="dislayOptions"
-      class="vue-virtual-picklist__picklist-options"
-      :style="computedOptionsStyles"
+      v-show="showOptions"
+      class="vue-virtual-picklist__picklist-options-container"
+      :style="computedOptionsContainerStyles"
     >
       <virtualized-list
         v-if="renderOptionsVirtualList"
+        ref="options"
         :items="availableOptions"
         :item-height="computedOptionHeight"
         :bench="visibleOptions"
       >
-        <template #default="{ item }">
+        <template #default="{ item, index }">
           <div
-            class="vue-virtual-picklist__option"
+            class="vue-virtual-picklist__option vue-virtual-picklist__noselect"
+            :class="computedOptionClasses(index)"
             :style="computedOptionStyles"
-            @click="onClickOption(item)"
+            @click="onSelectOption(item, index)"
           >
-            <slot name="option" :option="item">{{ item.label }}</slot>
+            <slot name="option" :option="{ ...item, index }">{{
+              item.label
+            }}</slot>
           </div>
         </template>
       </virtualized-list>
@@ -130,9 +142,17 @@ export default {
         return value > 0;
       },
     },
+    placeholder: {
+      type: String,
+      default: "select an option",
+    },
     enableSearch: {
       type: Boolean,
       default: false,
+    },
+    searchInputPlaceholder: {
+      type: String,
+      default: "type to filter available options",
     },
     searchKey: {
       type: String,
@@ -148,45 +168,24 @@ export default {
     },
     noOptionsAvailableText: {
       type: String,
-      default: "0 Results",
+      default: "no options found",
+    },
+    disabled: {
+      type: Boolean,
+      default: false,
     },
   },
   data: () => {
     return {
       isMounted: false,
-      selectedOption: {},
+      selectedOption: null,
       searchString: null,
-      dislayOptions: false,
+      showOptions: false,
+      activeOptionIndex: -1,
+      availableOptions: null,
     };
   },
   computed: {
-    availableOptions() {
-      if (!this.options || !this.options?.length) return null;
-      let items = this.options.map((item, index) => {
-        return { ...item, index };
-      });
-
-      let filteredItems = [];
-      if (this.searchString) {
-        for (let i = 0; i < items.length; i++) {
-          if (
-            this.caseInsensitve
-              ? items[i]?.[this.searchKey]
-                  ?.toLowerCase()
-                  .includes(this.searchString.toLowerCase())
-              : items[i]?.[this.searchKey].includes(this.searchString)
-          ) {
-            filteredItems.push(items[i]);
-          }
-        }
-        items = filteredItems;
-      }
-
-      if (this.hideSelected && this.selectedOption)
-        items.splice(this.selectedOption.index, 1);
-
-      return items;
-    },
     selectedOptionLabel() {
       return this.availableOptions?.length ? this.selectedOption?.label : null;
     },
@@ -200,15 +199,16 @@ export default {
     },
     computedFieldHeight() {
       return this.isMounted
-        ? this.$refs["vue-virtual-picklist__picklist-container"]?.offsetHeight
+        ? this.$refs["picklist-container"]?.offsetHeight
         : 0;
     },
     computedPicklistContainerClasses() {
       return {
-        "vue-virtual-picklist__no-pointer-events": !this.options?.length,
+        "vue-virtual-picklist__disabled":
+          !this.options?.length || this.disabled,
       };
     },
-    computedOptionsStyles() {
+    computedOptionsContainerStyles() {
       return {
         height: this.availableOptions?.length
           ? this.visibleOptions * this.computedOptionHeight + "px !important"
@@ -217,6 +217,12 @@ export default {
       };
     },
     computedSelectedOptionStyles() {
+      return {
+        height: this.computedFieldHeight + "px !important",
+        lineHeight: this.computedFieldHeight + "px !important",
+      };
+    },
+    computedPlaceholderStyles() {
       return {
         height: this.computedFieldHeight + "px !important",
         lineHeight: this.computedFieldHeight + "px !important",
@@ -238,58 +244,152 @@ export default {
         height: this.computedFieldHeight + "px !important",
       };
     },
-    isDisplayOptionsActiveClasses() {
+    computedPicklistInputContainerClasses() {
       return {
-        active: this.dislayOptions,
+        active: this.showOptions,
       };
     },
     renderOptionsVirtualList() {
       return this.availableOptions?.length;
     },
     renderSearchInput() {
-      return this.dislayOptions && this.enableSearch;
+      return this.showOptions && this.enableSearch;
+    },
+    renderPlaceholder() {
+      return this.placeholder && !this.disabled && !this.selectedOption;
     },
   },
   beforeMount() {
-    this.selectedOption = this.availableOptions?.find(
-      (option) =>
-        option[this.searchKey] === this.value?.[this.searchKey] &&
-        option.index === this.value?.index
-    );
+    if (this.value) {
+      this.selectedOption = this.options?.find(
+        (option, index) =>
+          option[this.searchKey] === this.value?.[this.searchKey] &&
+          index === this.value?.index
+      );
+    }
+
+    this.setAvailableOptions();
   },
   mounted() {
     this.isMounted = true;
   },
+  watch: {
+    showOptions(newValue) {
+      if (newValue) this.$emit("show-options");
+      else this.$emit("hide-options");
+    },
+  },
   methods: {
-    onClickPicklistButton() {
-      this.dislayOptions = !this.dislayOptions;
-      this.$nextTick(() => {
-        this.$refs.input?.focus();
+    onSearchOptions(event) {
+      if (event.key === "ArrowDown" || event.key === "ArrowUp") {
+        event.preventDefault();
+        return;
+      }
+      this.setAvailableOptions();
+    },
+    setAvailableOptions() {
+      return new Promise((resolve, _) => {
+        if (!this.options || !this.options?.length) return null;
+        this.availableOptions = this.options.map((item, index) => {
+          return { ...item, originalListIndex: index };
+        });
+
+        if (this.hideSelected && this.selectedOption)
+          this.availableOptions.splice(
+            this.selectedOption.originalListIndex,
+            1
+          );
+
+        let i = this.availableOptions.length;
+        if (this.searchString) {
+          while (i--) {
+            if (
+              !(this.caseInsensitve
+                ? this.availableOptions[i]?.[this.searchKey]
+                    ?.toLowerCase()
+                    .includes(this.searchString.toLowerCase())
+                : this.availableOptions[i]?.[this.searchKey].includes(
+                    this.searchString
+                  ))
+            ) {
+              this.availableOptions.splice(i, 1);
+            }
+          }
+        }
+
+        resolve();
       });
     },
-    onInputGainFocus() {
-      this.dislayOptions = true;
-      this.searchString = "";
+    onClickPicklistField() {
+      if (this.enableSearch && this.showOptions) return;
+      this.onClickDropdownButton();
     },
-    onInputLoseFocus() {
-      this.dislayOptions = false;
+    onClickDropdownButton() {
+      this.showOptions = !this.showOptions;
+      if (this.enableSearch) {
+        this.$nextTick(() => {
+          this.$refs.input?.focus();
+        });
+      }
+      if (!this.showOptions) this.hideOptions();
+    },
+    onInputGainFocus() {
+      this.$refs.options?.update();
+      this.showOptions = true;
       this.searchString = "";
+      if (!this.hideSelected && this.selectedOption?.originalListIndex) {
+        this.$nextTick(() => {
+          this.$refs.options.scrollTo(this.selectedOption?.originalListIndex);
+        });
+      }
+    },
+    onClickOutside() {
+      this.hideOptions();
     },
     onPressEscape() {
-      this.dislayOptions = false;
+      this.hideOptions();
     },
-    onClickOption(option) {
-      this.selectedOption = option;
-      this.dislayOptions = false;
+    hideOptions() {
+      this.showOptions = false;
+      this.searchString = "";
+      this.activeOptionIndex = -1;
+      this.setAvailableOptions();
+    },
+    onSelectOption(option, index) {
+      this.selectedOption = { ...option, filteredListIndex: index };
+      this.activeOptionIndex = index;
+      this.hideOptions();
       if (this.enableSearch) this.searchString = option.label;
       this.$emit("select", option);
       this.$emit("input", option);
     },
-    onClickSelectedOption() {
-      this.dislayOptions = !this.dislayOptions;
-      this.$nextTick(() => {
-        this.$refs.input?.focus();
-      });
+    onPressEnterOnActiveOption() {
+      this.onSelectOption(this.availableOptions[this.activeOptionIndex]);
+    },
+    moveActiveOptionUp() {
+      if (this.showOptions && this.activeOptionIndex > 0) {
+        this.activeOptionIndex--;
+        this.$nextTick(() => {
+          this.$refs.options.scrollTo(this.activeOptionIndex);
+        });
+      }
+    },
+    moveActiveOptionDown() {
+      if (
+        this.showOptions &&
+        this.activeOptionIndex < this.availableOptions.length
+      ) {
+        this.activeOptionIndex++;
+        if (this.activeOptionIndex >= this.visibleOptions)
+          this.$nextTick(() => {
+            this.$refs.options.scrollTo(this.activeOptionIndex);
+          });
+      }
+    },
+    computedOptionClasses(index) {
+      return {
+        active: this.activeOptionIndex === index,
+      };
     },
   },
 };
@@ -297,7 +397,9 @@ export default {
 
 <style scope>
 .vue-virtual-picklist__picklist-container * {
-  box-sizing: border-box;
+  box-sizing: border-box !important;
+  font-family: Helvetica, Sans-Serif !important;
+  font-size: 12px !important;
 }
 
 .vue-virtual-picklist__picklist-container {
@@ -306,13 +408,14 @@ export default {
   position: relative !important;
   display: flex !important;
   flex-direction: column !important;
+  cursor: pointer !important;
 }
 
-.vue-virtual-picklist__picklist-field {
+.vue-virtual-picklist__picklist-input-container {
   width: 100% !important;
   height: 100% !important;
   display: flex !important;
-  flex-direction: column !important;
+  flex-direction: row !important;
   border: thin solid grey !important;
 }
 
@@ -337,14 +440,12 @@ export default {
   background-color: transparent !important;
   align-items: center !important;
   justify-content: center !important;
-  cursor: pointer !important;
+  transition: transform 0.2s ease !important;
 }
 
-.vue-virtual-picklist__picklist-input-container {
-  display: flex !important;
-  flex-direction: row !important;
-  width: 100% !important;
-  height: 100% !important;
+.vue-virtual-picklist__picklist-input-container.active
+  .vue-virtual-picklist__picklist-button {
+  transform: rotate(180deg) !important;
 }
 
 .vue-virtual-picklist__picklist-input-container:focus-visible {
@@ -355,19 +456,13 @@ export default {
   background-color: transparent !important;
 }
 
-.vue-virtual-picklist__picklist-button-icon {
+.vue-virtual-picklist__dropdown-icon {
   height: 100% !important;
   max-height: 15px !important;
   fill: black !important;
-  transition: transform 0.2s ease !important;
 }
 
-.vue-virtual-picklist__picklist-input-container.active
-  .vue-virtual-picklist__picklist-button-icon {
-  transform: rotate(180deg) !important;
-}
-
-.vue-virtual-picklist__picklist-options {
+.vue-virtual-picklist__picklist-options-container {
   position: absolute !important;
   width: 100% !important;
   background-color: white !important;
@@ -378,6 +473,9 @@ export default {
 
 .vue-virtual-picklist__option {
   padding: 0px 10px !important;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
 }
 
 .vue-virtual-picklist__option:hover {
@@ -385,10 +483,16 @@ export default {
   cursor: pointer !important;
 }
 
+.vue-virtual-picklist__option.active {
+  background-color: rgba(220, 220, 220, 0.8) !important;
+}
+
 .vue-virtual-picklist__selected-option {
   width: 100% !important;
   cursor: pointer !important;
   padding: 0px 10px !important;
+  white-space: nowrap;
+  text-overflow: ellipsis;
 }
 
 .vue-virtual-picklist__no-options-container {
@@ -398,7 +502,26 @@ export default {
   align-items: center !important;
 }
 
-.vue-virtual-picklist__no-pointer-events {
+.vue-virtual-picklist__disabled {
   pointer-events: none !important;
+  opacity: 0.6 !important;
+}
+
+.vue-virtual-picklist__placeholder {
+  width: 100% !important;
+  padding: 0px 10px !important;
+  color: rgb(117, 117, 117) !important;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
+}
+
+.vue-virtual-picklist__noselect {
+  -webkit-touch-callout: none; /* iOS Safari */
+  -webkit-user-select: none; /* Safari */
+  -khtml-user-select: none; /* Konqueror HTML */
+  -moz-user-select: none; /* Old versions of Firefox */
+  -ms-user-select: none; /* Internet Explorer/Edge */
+  user-select: none; /* Non-prefixed version, currently upported by Chrome, Edge, Opera and Firefox */
 }
 </style>

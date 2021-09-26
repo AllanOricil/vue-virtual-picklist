@@ -1,6 +1,6 @@
 {
   "name": "vue-virtual-picklist",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "This is an optimized picklist/combobox for Vue that virtualizes the available options",
   "author": {
     "name": "Allan Oricil",
