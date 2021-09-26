@@ -31,6 +31,10 @@
         :style="computedSelectedOptionStyles"
         @click="onClickPicklistField"
       >
+        <!-- 
+          @slot used to control how the selected option is rendered. 
+          @binding {object} option it contains  `value`, `label`, `index`, and `originalListIndex`
+        -->
         <slot name="selected-option" :option="selectedOption">{{
           selectedOptionLabel
         }}</slot>
@@ -41,13 +45,22 @@
         :style="computedPlaceholderStyles"
         @click="onClickPicklistField"
       >
-        <slot name="placeholder">{{ placeholder }}</slot>
+        <!-- 
+          @slot used to control how the picklist's placeholder is rendered. 
+          @binding {string} placeholder it is the value you passed on the `placeholder` property.
+        -->
+        <slot name="placeholder" :placehodler="placeholder">{{
+          placeholder
+        }}</slot>
       </div>
       <div
         class="vue-virtual-picklist__picklist-button"
         :style="computedPicklistButtonStyles"
         @click="onClickDropdownButton"
       >
+        <!-- 
+          @slot  used to override the dropdown icon. It can be any image and you can style it on the parent component.
+        -->
         <slot name="dropdown-icon">
           <svg
             focusable="false"
@@ -84,6 +97,10 @@
             :style="computedOptionStyles"
             @click="onSelectOption(item, index)"
           >
+            <!-- 
+              @slot used to control how each option from the list of options is rendered.
+              @binding {object} option it is an object containing  `value`, `label`, `index`, and `originalListIndex`
+            -->
             <slot name="option" :option="{ ...item, index }">{{
               item.label
             }}</slot>
@@ -91,6 +108,10 @@
         </template>
       </virtualized-list>
       <div v-else class="vue-virtual-picklist__no-options-container">
+        <!-- 
+          @slot used to control how the message when the filter returns 0 results is displayed.
+          @binding {string} text it has the value you passed on the `noOptionsAvailableText` property
+        -->
         <slot name="no-options" :text="noOptionsAvailableText">{{
           noOptionsAvailableText
         }}</slot>
@@ -103,6 +124,10 @@
 import VirtualizedList from "vue-virtualized-list";
 import vClickOutside from "v-click-outside";
 
+/**
+ * It is a picklist that virtualizes its options to avoid mounting all of them in the DOM. Options are swaped depending on the position of the scrollbar.
+ * @displayName Vue Virtual Picklist
+ */
 export default {
   directives: {
     clickOutside: vClickOutside.directive,
@@ -112,10 +137,51 @@ export default {
     VirtualizedList,
   },
   props: {
-    value: {
-      type: Object,
-      default: null,
+    /**
+     * If enabled, the search is Case Insensitive.
+     */
+    caseInsensitive: {
+      type: Boolean,
+      default: false,
     },
+    /**
+     * if enabled, the picklist is disabled.
+     */
+    disabled: {
+      type: Boolean,
+      default: false,
+    },
+    /**
+     * If enabled, an input is rendered and the user can type on it.
+     */
+    enableSearch: {
+      type: Boolean,
+      default: false,
+    },
+    /**
+     * If enabled, the selected option is removed from the available options.
+     */
+    hideSelected: {
+      type: Boolean,
+      default: false,
+    },
+    /**
+     * It is the text shown when the search returns no options.
+     */
+    noOptionsAvailableText: {
+      type: String,
+      default: "no options found",
+    },
+    /**
+     * It determines the Height of each option. It is not necessary to set it. It is used by vue-virtualized-list to control the virtualization.
+     */
+    optionHeight: {
+      type: Number,
+      default: 30,
+    },
+    /**
+     * These are the options available to be selected. Each object in the array must have the "value" and "label" keys. These objects can also have other keys, which will also be emited by the `input` and `select` events.
+     */
     options: {
       type: Array,
       required: true,
@@ -131,48 +197,42 @@ export default {
         }, true);
       },
     },
-    optionHeight: {
-      type: Number,
-      default: 30,
+    /**
+     * It is the placeholder for when there are options to select but none were picked.
+     */
+    placeholder: {
+      type: String,
+      default: "select an option",
     },
+    /**
+     * It is the placeholder for the search input. It has to be combined with the `enable-search` property.
+     */
+    searchInputPlaceholder: {
+      type: String,
+      default: "type to filter available options",
+    },
+    /**
+     * It is the key used to filter the objects you passed on `options` property. It defaults to `value`, but you can choose other key from the objects you passed.
+     */
+    searchKey: {
+      type: String,
+      default: "value",
+    },
+    /**
+     * Stores the object which is used to determine the selected option. This object must be in the following format: </br>`{ "value" : "a", "label" : "a", "index": 0 }`
+     */
+    value: {
+      type: Object,
+    },
+    /**
+     * It controls the number of visible options.
+     */
     visibleOptions: {
       type: Number,
       default: 5,
       validator: (value) => {
         return value > 0;
       },
-    },
-    placeholder: {
-      type: String,
-      default: "select an option",
-    },
-    enableSearch: {
-      type: Boolean,
-      default: false,
-    },
-    searchInputPlaceholder: {
-      type: String,
-      default: "type to filter available options",
-    },
-    searchKey: {
-      type: String,
-      default: "value",
-    },
-    caseInsensitve: {
-      type: Boolean,
-      default: false,
-    },
-    hideSelected: {
-      type: Boolean,
-      default: false,
-    },
-    noOptionsAvailableText: {
-      type: String,
-      default: "no options found",
-    },
-    disabled: {
-      type: Boolean,
-      default: false,
     },
   },
   data: () => {
@@ -275,8 +335,21 @@ export default {
   },
   watch: {
     showOptions(newValue) {
-      if (newValue) this.$emit("show-options");
-      else this.$emit("hide-options");
+      if (newValue) {
+        /**
+         * dispatched when options are shown.
+         *
+         * @event show-options
+         */
+        this.$emit("show-options");
+      } else {
+        /**
+         * dispatched when options are hidden.
+         *
+         * @event show-options
+         */
+        this.$emit("hide-options");
+      }
     },
   },
   methods: {
@@ -304,7 +377,7 @@ export default {
         if (this.searchString) {
           while (i--) {
             if (
-              !(this.caseInsensitve
+              !(this.caseInsensitive
                 ? this.availableOptions[i]?.[this.searchKey]
                     ?.toLowerCase()
                     .includes(this.searchString.toLowerCase())
@@ -360,7 +433,20 @@ export default {
       this.activeOptionIndex = index;
       this.hideOptions();
       if (this.enableSearch) this.searchString = option.label;
+      /**
+       * dispatched after selecting an option. This can be used when you use `value`, instead of v-model.
+       *
+       * @property { object } option object containing `value`, `label`, `index`, and `originalListIndex`
+       * @event select
+       */
       this.$emit("select", option);
+
+      /**
+       * dispatched after selecting an option. This is used for v-model.
+       *
+       * @property { object } option object containing `value`, `label`, `index`, and `originalListIndex`
+       * @event input
+       */
       this.$emit("input", option);
     },
     onPressEnterOnActiveOption() {
