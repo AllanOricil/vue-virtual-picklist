@@ -11,6 +11,8 @@ Simplest Example:
 </template>
 
 <script>
+import "../dist/vue-virtual-picklist.min.css"
+
 export default {
   data: () => {
     return {
