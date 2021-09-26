@@ -1,8 +1,6 @@
 module.exports = {
-  // set your styleguidist configuration here
-  title: "Default Style Guide",
+  title: "Documentation",
   components: "src/**/*.vue",
-  // defaultExample: true,
   sections: [
     {
       name: "Examples",
